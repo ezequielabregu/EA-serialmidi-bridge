@@ -2,13 +2,13 @@
 
 This project is a graphical user interface (GUI) application for a Serial MIDI bridge. It allows users to connect MIDI devices via a serial port and manage MIDI input and output through a modern and simple interface.
 
-This app is based on the [serialmidi](https://github.com/raspy135/serialmidi) repository, which provides a user-friendly way convert serial data to MIDI messages and vice versa. 
+This app is based on the [serialmidi](https://github.com/raspy135/serialmidi) repository, which provides a user-friendly way convert serial data to MIDI messages and vice versa.
 
 The GUI enhances the usability of the original project by providing a visual representation of the MIDI connections and settings.
 
 ## Project Structure
 
-```
+```plaintext
 serialmidi-gui-app
 ├── src
 │   ├── serialmidi.py        # Main logic for the Serial MIDI bridge
@@ -24,7 +24,7 @@ serialmidi-gui-app
 
 To install the required dependencies, run the following command:
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 To run the application, execute the following command:
 
-```
+```bash
 python src/gui.py
 ```
 
@@ -50,7 +50,7 @@ This project requires the following Python packages:
 
 To create a binary file for the application, you can use `pyinstaller`. First, install it if you haven't already:
 
-```
+```bash
 pip install pyinstaller
 ```
 
@@ -66,9 +66,11 @@ cd path/to/EA-serialmidi-bridge/src
 ### Run PyInstaller
 
 Use PyInstaller to create a standalone executable. The `--windowed` option prevents a console window from appearing when you run the GUI application.
+
 ```bash
 pyinstaller --windowed --name "EASerialMIDIBridge" gui.py
 ```
+
 This will create a `dist` folder containing the executable file for your application. You can find the binary file named `EASerialMIDIBridge` inside the `dist` folder.
 You can now distribute this binary file to run the application without requiring users to install Python or any dependencies.
 
@@ -85,6 +87,7 @@ datas=[('assets/styles.qss', 'assets')],
 ```
 
 The datas section should look like this:
+
 ```bash
 a = Analysis(
     ['gui.py'],
@@ -94,9 +97,10 @@ a = Analysis(
     ...
 )
 ```
+
 Save the .spec file.
 
-5. Rebuild the Binary
+#### Rebuild the Binary
 
 ```bash
 pyinstaller EASerialMIDIBridge.spec
@@ -115,13 +119,13 @@ hiddenimports=['rtmidi._rtmidi'],
 
 If you plan to distribute the app to other macOS users, you may need to code-sign and notarize it to avoid Gatekeeper warnings:
 
-#### Code Signing:
+#### Code Signing
 
 ```bash
 codesign --deep --force --verify --sign "Developer ID Application: Your Name (TeamID)" dist/EASerialMIDIBridge/EASerialMIDIBridge.app
-```   
+```
 
-#### Notarization: 
+#### Notarization
 
 Submit the app to Apple for notarization:
 
