@@ -1,0 +1,129 @@
+QWidget {
+    background-color: #1E1E1E;
+    color: #E0E0E0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #1abc9c; /* Start/Stop button color */
+    border: 1px solid #16a085;
+    color: #ffffff;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #16a085;
+    border: 1px solid #1abc9c;
+}
+
+QPushButton:pressed {
+    background-color: #149174;
+    border: 1px solid #16a085;
+}
+
+QPushButton#refreshButton {
+    background-color: #1E1E1E; /* Refresh button color */
+    border: 1px solid #34495e;
+    color: #ffffff;
+    padding: 4px 8px;
+    text-align: center;
+    font-size: 12px;
+    border-radius: 4px;
+    min-width: 50px; /* Smaller size */
+    max-width: 80px; /* Adjust the maximum width */
+    height: 10px;    /* Adjust the height */
+}
+
+QPushButton#refreshButton:hover {
+    background-color: #34495e;
+    border: 1px solid #2c3e50;
+}
+
+QPushButton#refreshButton:pressed {
+    background-color: #1c2833;
+    border: 1px solid #34495e;
+}
+
+QLabel {
+    color: #3498db; /* Text color */
+    font-size: 14px;
+    margin: 5px;
+}
+
+QLineEdit {
+    background-color: #2E2E2E;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 5px;
+    color: #E0E0E0;
+}
+
+QLineEdit:focus {
+    border: 1px solid #1abc9c;
+}
+
+QComboBox {
+    background-color: #2E2E2E;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 5px;
+    color: #E0E0E0;
+}
+
+QComboBox:focus {
+    border: 1px solid #1abc9c;
+}
+
+QTextEdit {
+    background-color: #2E2E2E;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 5px;
+    color: #E0E0E0;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 13px;
+}
+
+QTextEdit:focus {
+    border: 1px solid #1abc9c;
+}
+
+QScrollBar:vertical {
+    background: #2E2E2E;
+    width: 10px;
+    margin: 0px;
+    border: 1px solid #555555;
+}
+
+QScrollBar::handle:vertical {
+    background: #1abc9c;
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: none;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    background: #2E2E2E;
+    height: 10px;
+    margin: 0px;
+    border: 1px solid #555555;
+}
+
+QScrollBar::handle:horizontal {
+    background: #1abc9c;
+    min-width: 20px;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    background: none;
+    border: none;
+}
