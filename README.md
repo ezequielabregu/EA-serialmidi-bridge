@@ -48,7 +48,7 @@ This project requires the following Python packages:
 
 ## Create a binary file
 
-To create a binary file for the application, you can use `pyinstaller`. 
+To create a binary file for the application, you can use `pyinstaller`.
 
 First, install it if you haven't already:
 
@@ -78,7 +78,7 @@ You can now distribute this binary file to run the application without requiring
 
 ### Include Additional Files
 
-The app uses external files like `styles.qss`. PyInstaller does not include these files by default. 
+The app uses external files like `styles.qss`. PyInstaller does not include these files by default.
 
 To include them:
 
@@ -127,7 +127,6 @@ Save the .spec file.
 ### Rebuild the Binary
 
 Change the .spec file name to gui.spec
-
 
 ```bash
 pyinstaller gui.spec
