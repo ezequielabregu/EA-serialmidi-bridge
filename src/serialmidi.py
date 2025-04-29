@@ -53,7 +53,9 @@ class SerialMIDI:
                 continue
             if not self.ser or not self.ser.is_open:
                 break  # Exit if the serial port is closed
-            logging.debug(message)
+            #uncomment the next line to see the raw data
+            #logging.debug(message)
+            logging.debug(describe_midi_message(message))
             self.ser.write(bytearray(message))
 
     def serial_watcher(self):
@@ -81,7 +83,9 @@ class SerialMIDI:
 
                 message_length = self.get_midi_length(receiving_message)
                 if message_length <= len(receiving_message):
-                    logging.debug(receiving_message)
+                    #uncomment the next line to see the raw data
+                    #logging.debug(receiving_message)
+                    logging.debug(describe_midi_message(receiving_message))
                     self.midiout_message_queue.put(receiving_message)
                     receiving_message = []
 
@@ -133,18 +137,27 @@ class SerialMIDI:
         midiin.ignore_types(sysex=False, timing=False, active_sense=False)
         midiin.set_callback(self.midi_input_handler(self.given_port_name_in))
 
-        while self.thread_running:
-            try:
-                message = self.midiout_message_queue.get(timeout=0.4)
-            except queue.Empty:
-                continue
+        try:
+            while self.thread_running:
+                try:
+                    message = self.midiout_message_queue.get(timeout=0.4)
+                except queue.Empty:
+                    continue
 
-            # Send the MIDI message to the output port
-            try:
-                midiout.send_message(message)
-                #logging.debug(f"Sent MIDI message: {message}")
-            except Exception as e:
-                logging.error(f"Failed to send MIDI message: {message}. Error: {e}")
+                # Send the MIDI message to the output port
+                try:
+                    midiout.send_message(message)
+                except Exception as e:
+                    logging.error(f"Failed to send MIDI message: {message}. Error: {e}")
+        finally:
+            # Remove callback and close ports safely
+            midiin.cancel_callback()
+            if midiin.is_port_open():
+                midiin.close_port()
+            if midiout.is_port_open():
+                midiout.close_port()
+            # Do NOT call .delete() here unless you are 100% sure nothing will touch these objects again
+            # Let Python's garbage collector handle it after thread exit
 
     def start(self):
         try:
@@ -194,3 +207,17 @@ class SerialMIDI:
             self.ser.close()
             logging.info("Serial port closed.")
         logging.info("Threads stopped.")
+
+def describe_midi_message(message):
+    if not message or not isinstance(message, (list, tuple)):
+        return str(message)
+    status = message[0]
+    channel = (status & 0x0F) + 1  # Channel for musicians (1-16)
+    if status & 0xF0 == 176 and len(message) > 2:
+        return f"Control Change: CC# {message[1]:<3} VALUE {message[2]:<3} CH {channel:<2}"
+    elif status & 0xF0 == 144 and len(message) > 2:
+        return f"Note On:   NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
+    elif status & 0xF0 == 128 and len(message) > 2:
+        return f"Note Off:  NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
+    else:
+        return f"Unknown MIDI: {message}"

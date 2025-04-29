@@ -3,17 +3,21 @@ import threading
 import logging
 import serialmidi
 import os
-from PyQt5 import QtWidgets, QtCore  # Import QtCore for QTimer
-from PyQt5.QtGui import QTextCursor  # Import QTextCursor for text box scrolling
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtGui import QTextCursor
+from PyQt6.QtCore import Qt, pyqtSignal
 from serial.tools import list_ports
 import rtmidi
 
 
 class SerialMIDIApp(QtWidgets.QWidget):
+    log_signal = pyqtSignal(str)  # Add this line
+
     def __init__(self):
         super().__init__()
         self.initUI()
         self.serial_midi = None
+        self.log_signal.connect(self.log_message)  # Connect the signal to the slot
 
     def closeEvent(self, event):
         """Handle the window close event to clean up resources."""
@@ -93,7 +97,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
     def log_message(self, message):
         """Log a message to the debugging text box and ensure it scrolls to the bottom."""
         self.debug_text_box.append(message)
-        self.debug_text_box.moveCursor(QTextCursor.End)  # Use QTextCursor from QtGui
+        self.debug_text_box.moveCursor(QTextCursor.MoveOperation.End)
 
     def refresh_serial_ports(self):
         """Refresh the list of available serial ports."""
@@ -104,8 +108,8 @@ class SerialMIDIApp(QtWidgets.QWidget):
 
     def refresh_midi_ports(self):
         """Refresh the list of available MIDI ports."""
-        midi_out = rtmidi.MidiOut()  # Use MidiOut instead of RtMidiOut
-        midi_in = rtmidi.MidiIn()    # Use MidiIn instead of RtMidiIn
+        midi_out = rtmidi.MidiOut()
+        midi_in = rtmidi.MidiIn()
 
         # Populate MIDI Out dropdown
         self.midi_out_dropdown.clear()
@@ -151,7 +155,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
             logging.info("Serial MIDI Bridge started.")
         else:
             # Stop the Serial MIDI bridge
-            self.serial_midi.stop()  # Call the stop method to close the serial port
+            self.serial_midi.stop()
             self.serial_midi = None
 
             self.toggle_button.setText("START")
@@ -166,7 +170,8 @@ class GuiLogHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = self.format(record)
-        self.gui.log_message(log_entry)
+        # Use the signal to update the GUI safely
+        self.gui.log_signal.emit(log_entry)
 
 
 def main():
@@ -179,7 +184,7 @@ def main():
 
     ex = SerialMIDIApp()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
