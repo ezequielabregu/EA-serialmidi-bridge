@@ -195,3 +195,48 @@ xcrun altool --notarize-app --primary-bundle-id "com.yourdomain.EASerialMIDIBrid
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## Apendix
+
+A classic symptom of updating the Qt GUI from a non-GUI thread.
+In PyQt (and all Qt), all GUI updates must happen in the main (GUI) thread.
+If you update the GUI (e.g., append to a QTextEdit) from a worker thread (like your MIDI or serial threads), you risk random crashes, including `segmentation faults`.
+
+### How to Fix
+
+1. Never call self.gui.log_message() directly from a worker thread.
+Instead, use Qt signals to safely communicate from worker threads to the GUI thread.
+
+2. Implement a Thread-Safe Logging Signal
+Step 1: Add a signal to your GUI class:
+
+```python
+from PyQt6.QtCore import pyqtSignal
+
+class SerialMIDIApp(QtWidgets.QWidget):
+    log_signal = pyqtSignal(str)  # Add this line
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.serial_midi = None
+        self.log_signal.connect(self.log_message)
+```
+
+Step 2: In your custom logging handler, emit the signal instead of calling the method directly:
+
+```python
+class GuiLogHandler(logging.Handler):
+    def __init__(self, gui):
+        super().__init__()
+        self.gui = gui
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        # Use the signal to update the GUI safely
+        self.gui.log_signal.emit(log_entry)
+```
+
+####  Why This Works
+
+Qt signals/slots ensure that the slot (log_message) is always called in the main thread, even if the signal is emitted from a worker thread.
