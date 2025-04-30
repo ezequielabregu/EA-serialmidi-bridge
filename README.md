@@ -1,6 +1,6 @@
-# Serial MIDI Bridge GUI Application
+# EA Serial MIDI Bridge
 
-This project is a graphical user interface (GUI) application for a Serial MIDI bridge. It allows users to connect MIDI devices via a serial port and manage MIDI input and output through a modern and simple interface.
+This app allows users to connect serial devices to MIDI applications, enabling seamless communication between hardware and software. It provides a graphical user interface (GUI) for easy configuration and monitoring of MIDI connections.
 
 This app is based on the [serialmidi](https://github.com/raspy135/serialmidi) repository, which provides a user-friendly way convert serial data to MIDI messages and vice versa.
 
@@ -73,6 +73,8 @@ Use PyInstaller to create a standalone executable. The `--windowed` option preve
 pyinstaller --windowed --name "gui" gui.py
 ```
 
+IMPORTANT: `--onefile` option is recommended on Windows, but on macOS it may cause issues with the GUI. Therefore, we are not using it here.
+
 This will create a `dist` folder containing the executable file for your application. You can find the binary file inside the `dist` folder.
 You can now distribute this binary file to run the application without requiring users to install Python or any dependencies.
 
@@ -123,6 +125,46 @@ app = BUNDLE(
 ```
 
 Save the .spec file.
+
+### Windows build
+
+On Windoes, you can use the `--onefile` option to create a single executable file. The command would look like this:
+
+```bash
+pyinstaller --onefile --windowed --name "gui" gui.py
+```
+
+On windows, you can also use the `--icon` option to set the icon for the executable:
+
+```bash
+pyinstaller --onefile --windowed --name "gui" --icon=assets/icon_filename.ico gui.py
+```
+
+The .spec file will look like this:
+
+```plaintext
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name='EA Serial MIDI Bridge',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon=['assets\\trade.ico'],
+)
+```
 
 ### Rebuild the Binary
 
