@@ -19,6 +19,10 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.serial_midi = None
         self.log_signal.connect(self.log_message)  # Connect the signal to the slot
 
+        # After creating the GUI
+        logging.getLogger().handlers.clear()
+        logging.getLogger().addHandler(GuiLogHandler(self))
+
     def closeEvent(self, event):
         """Handle the window close event to clean up resources."""
         if self.serial_midi:
@@ -79,7 +83,8 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.refresh_midi_ports()
 
         # Debug Checkbox
-        self.debug_checkbox = QtWidgets.QCheckBox("Enable Debug")
+        self.debug_checkbox = QtWidgets.QCheckBox("Debug")
+        self.debug_checkbox.stateChanged.connect(self.update_logging_level)
         layout.addWidget(self.debug_checkbox)
 
         # Toggle Button
@@ -152,6 +157,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
             threading.Thread(target=self.serial_midi.start).start()
 
             self.toggle_button.setText("STOP")
+            self.toggle_button.setStyleSheet("background-color: #34495e; color: white;")
             logging.info("Serial MIDI Bridge started.")
         else:
             # Stop the Serial MIDI bridge
@@ -159,7 +165,14 @@ class SerialMIDIApp(QtWidgets.QWidget):
             self.serial_midi = None
 
             self.toggle_button.setText("START")
+            self.toggle_button.setStyleSheet("")  # Reset to default
             logging.info("Serial MIDI Bridge stopped.")
+
+    def update_logging_level(self):
+        if self.debug_checkbox.isChecked():
+            logging.getLogger().setLevel(logging.DEBUG)
+        else:
+            logging.getLogger().setLevel(logging.INFO)
 
 
 class GuiLogHandler(logging.Handler):
