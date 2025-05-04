@@ -56,10 +56,10 @@ class SerialMIDI:
                 break  # Exit if the serial port is closed
             #uncomment the next line to see the raw data
             #logging.debug(message)
-            logging.debug(describe_midi_message(message))
+            #logging.debug(describe_midi_message(message))
             self.ser.write(bytearray(message))
             # After sending data (outgoing)
-            self.gui.led_blink_signal.emit("yellow")
+            #self.gui.led_blink_signal.emit("yellow")
 
     def serial_watcher(self):
         receiving_message = []
@@ -100,14 +100,17 @@ class SerialMIDI:
         self.midi_out_active = False
 
     class midi_input_handler:
-        def __init__(self, port):
-            self.port = port
+        def __init__(self, parent):
+            self.parent = parent
             self._wallclock = time.time()
 
         def __call__(self, event, data=None):
             message, deltatime = event
             self._wallclock += deltatime
-            self.midiin_message_queue.put(message)
+            self.parent.midiin_message_queue.put(message)
+            # Optionally, blink LED and log
+            self.parent.gui.led_blink_signal.emit("#f1c40f")  # Yellow for MIDI IN
+            logging.debug(f"MIDI IN: {describe_midi_message(message)}")
 
     def midi_watcher(self):
         midiin = rtmidi.MidiIn()
@@ -140,7 +143,7 @@ class SerialMIDI:
 
         self.midi_ready = True
         midiin.ignore_types(sysex=False, timing=False, active_sense=False)
-        midiin.set_callback(self.midi_input_handler(self.given_port_name_in))
+        midiin.set_callback(self.midi_input_handler(self))
 
         try:
             while self.thread_running:

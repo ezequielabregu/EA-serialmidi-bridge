@@ -157,6 +157,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
             serial_port_name = self.port_dropdown.currentText()
             baud_rate = int(self.baud_dropdown.currentText())
             midi_in_name = self.midi_in_dropdown.currentText()
+            print("Selected MIDI In Port:", midi_in_name)
             midi_out_name = self.midi_out_dropdown.currentText()
 
             # Update level based on checkbox
