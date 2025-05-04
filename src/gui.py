@@ -3,7 +3,7 @@ import threading
 import logging
 import serialmidi
 import os
-from PyQt6 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtCore import Qt, pyqtSignal
 from serial.tools import list_ports
@@ -11,17 +11,31 @@ import rtmidi
 
 
 class SerialMIDIApp(QtWidgets.QWidget):
-    log_signal = pyqtSignal(str)  # Add this line
+    log_signal = pyqtSignal(str)
+    led_blink_signal = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
+        # Create LED and Refresh button before initUI
+        self.led_label = QtWidgets.QLabel()
+        self.set_led_color("gray")
+        self.led_label.setFixedSize(14, 14)
+        self.led_label.setStyleSheet("background: transparent; margin: 0px; padding: 0px;")
+
+        self.refresh_button = QtWidgets.QPushButton("Refresh Ports")
+        self.refresh_button.setObjectName("refreshButton")
+        self.refresh_button.clicked.connect(self.refresh_serial_ports)
+
         self.initUI()
         self.serial_midi = None
-        self.log_signal.connect(self.log_message)  # Connect the signal to the slot
+        self.log_signal.connect(self.log_message)
+        self.led_blink_signal.connect(self.blink_led)
 
-        # After creating the GUI
+        # Set up logging handler ONCE here
         logging.getLogger().handlers.clear()
         logging.getLogger().addHandler(GuiLogHandler(self))
+        # Set initial level based on checkbox
+        self.update_logging_level()
 
     def closeEvent(self, event):
         """Handle the window close event to clean up resources."""
@@ -41,16 +55,13 @@ class SerialMIDIApp(QtWidgets.QWidget):
         # Serial Port Selection
         self.port_label = QtWidgets.QLabel("Serial Port")
 
-        # Create a horizontal layout for the label and refresh button
         port_layout = QtWidgets.QHBoxLayout()
-        port_layout.addWidget(self.port_label)
+        port_layout.addWidget(self.port_label)      # 1. Serial Port label
+        port_layout.addWidget(self.led_label)       # 2. LED (immediately right of label)
+        port_layout.addSpacing(160) 
+        port_layout.addWidget(self.refresh_button)  # 3. Refresh button (rightmost)
 
-        self.refresh_button = QtWidgets.QPushButton("Refresh Ports")
-        self.refresh_button.setObjectName("refreshButton")  # Set object name for styling
-        self.refresh_button.clicked.connect(self.refresh_serial_ports)
-        port_layout.addWidget(self.refresh_button)
-
-        layout.addLayout(port_layout)  # Add the horizontal layout to the main layout
+        layout.addLayout(port_layout)
 
         self.port_dropdown = QtWidgets.QComboBox()
         self.refresh_serial_ports()
@@ -83,18 +94,27 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.refresh_midi_ports()
 
         # Debug Checkbox
+        layout.addSpacing(12)  
         self.debug_checkbox = QtWidgets.QCheckBox("Debug")
         self.debug_checkbox.stateChanged.connect(self.update_logging_level)
         layout.addWidget(self.debug_checkbox)
-
+        layout.addSpacing(12) 
         # Toggle Button
         self.toggle_button = QtWidgets.QPushButton("START")
+        #self.toggle_button.setFixedHeight(32)  # or whatever looks good
+        self.toggle_button.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Fixed
+        )
         self.toggle_button.clicked.connect(self.toggle_serial_midi)
         layout.addWidget(self.toggle_button)
 
+        layout.addSpacing(8) 
+        
         # Debugging Text Box
         self.debug_text_box = QtWidgets.QTextEdit()
         self.debug_text_box.setReadOnly(True)
+        self.debug_text_box.setPlaceholderText("Debug output will appear here...")
         layout.addWidget(self.debug_text_box)
 
         self.setLayout(layout)
@@ -103,6 +123,10 @@ class SerialMIDIApp(QtWidgets.QWidget):
         """Log a message to the debugging text box and ensure it scrolls to the bottom."""
         self.debug_text_box.append(message)
         self.debug_text_box.moveCursor(QTextCursor.MoveOperation.End)
+
+    def blink_led(self, color):
+        self.set_led_color(color)
+        QtCore.QTimer.singleShot(100, lambda: self.set_led_color("gray"))
 
     def refresh_serial_ports(self):
         """Refresh the list of available serial ports."""
@@ -134,14 +158,9 @@ class SerialMIDIApp(QtWidgets.QWidget):
             baud_rate = int(self.baud_dropdown.currentText())
             midi_in_name = self.midi_in_dropdown.currentText()
             midi_out_name = self.midi_out_dropdown.currentText()
-            debug = self.debug_checkbox.isChecked()
 
-            # Configure logging
-            logging.getLogger().handlers.clear()  # Clear existing handlers
-            if debug:
-                logging.basicConfig(level=logging.DEBUG)
-            else:
-                logging.basicConfig(level=logging.INFO)
+            # Update level based on checkbox
+            self.update_logging_level()
 
             self.serial_midi = serialmidi.SerialMIDI(
                 gui=self,
@@ -151,13 +170,13 @@ class SerialMIDIApp(QtWidgets.QWidget):
                 midi_out_name=midi_out_name,
             )
 
-            # Redirect logging to the text box
-            logging.getLogger().addHandler(GuiLogHandler(self))
-
             threading.Thread(target=self.serial_midi.start).start()
 
             self.toggle_button.setText("STOP")
-            self.toggle_button.setStyleSheet("background-color: #34495e; color: white;")
+            #self.toggle_button.setStyleSheet("background-color: #2980b9; color: white;")
+            self.toggle_button.setProperty("active", True)
+            self.toggle_button.style().unpolish(self.toggle_button)
+            self.toggle_button.style().polish(self.toggle_button)
             logging.info("Serial MIDI Bridge started.")
         else:
             # Stop the Serial MIDI bridge
@@ -165,7 +184,10 @@ class SerialMIDIApp(QtWidgets.QWidget):
             self.serial_midi = None
 
             self.toggle_button.setText("START")
-            self.toggle_button.setStyleSheet("")  # Reset to default
+            #self.toggle_button.setStyleSheet("")  # Reset to default
+            self.toggle_button.setProperty("active", False)
+            self.toggle_button.style().unpolish(self.toggle_button)
+            self.toggle_button.style().polish(self.toggle_button)
             logging.info("Serial MIDI Bridge stopped.")
 
     def update_logging_level(self):
@@ -173,6 +195,17 @@ class SerialMIDIApp(QtWidgets.QWidget):
             logging.getLogger().setLevel(logging.DEBUG)
         else:
             logging.getLogger().setLevel(logging.INFO)
+
+    def set_led_color(self, color):
+        pixmap = QtGui.QPixmap(14, 14)
+        pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setBrush(QtGui.QBrush(QtGui.QColor(color)))
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.drawEllipse(0, 0, 14, 14)
+        painter.end()
+        self.led_label.setPixmap(pixmap)
 
 
 class GuiLogHandler(logging.Handler):

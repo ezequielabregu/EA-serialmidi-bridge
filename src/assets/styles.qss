@@ -11,14 +11,25 @@ QPushButton {
     color: #ffffff;
     padding: 8px 16px;
     text-align: center;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 4px;
 }
 
+QPushButton[active="true"] {
+    background-color: #2980b9;
+    color: white;
+    border: 1px solid #16a085;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 4px;
+}
+/*
 QPushButton:hover {
     background-color: #16a085;
     border: 1px solid #1abc9c;
 }
+*/
 
 QPushButton:pressed {
     background-color: #149174;
@@ -26,16 +37,17 @@ QPushButton:pressed {
 }
 
 QPushButton#refreshButton {
-    background-color: #1E1E1E; /* Refresh button color */
+    background-color: #1E1E1E;
     border: 1px solid #34495e;
     color: #ffffff;
-    padding: 4px 8px;
+    padding: 2px 8px;
     text-align: center;
     font-size: 12px;
     border-radius: 4px;
-    min-width: 50px; /* Smaller size */
-    max-width: 80px; /* Adjust the maximum width */
-    height: 10px;    /* Adjust the height */
+    min-width: 80px;
+    max-width: 100px;
+    min-height: 14px;
+    max-height: 16px;
 }
 
 QPushButton#refreshButton:hover {

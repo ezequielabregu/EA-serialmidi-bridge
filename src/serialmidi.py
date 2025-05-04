@@ -5,6 +5,7 @@ import serial
 import threading
 import logging
 import sys
+from PyQt6 import QtCore
 
 class SerialMIDI:
     def __init__(self, gui, serial_port_name, serial_baud, midi_in_name, midi_out_name):
@@ -57,6 +58,8 @@ class SerialMIDI:
             #logging.debug(message)
             logging.debug(describe_midi_message(message))
             self.ser.write(bytearray(message))
+            # After sending data (outgoing)
+            self.gui.led_blink_signal.emit("yellow")
 
     def serial_watcher(self):
         receiving_message = []
@@ -88,6 +91,8 @@ class SerialMIDI:
                     logging.debug(describe_midi_message(receiving_message))
                     self.midiout_message_queue.put(receiving_message)
                     receiving_message = []
+                    # After receiving data (incoming)
+                    self.gui.led_blink_signal.emit("#2ecc71") # Green color
 
     def reset_activity_flags(self):
         """Reset the activity flags for MIDI In and Out."""
@@ -207,6 +212,9 @@ class SerialMIDI:
             self.ser.close()
             logging.info("Serial port closed.")
         logging.info("Threads stopped.")
+
+        # Update GUI LED color to indicate stopped state
+        #self.gui.set_led_color("red")
 
 def describe_midi_message(message):
     if not message or not isinstance(message, (list, tuple)):
