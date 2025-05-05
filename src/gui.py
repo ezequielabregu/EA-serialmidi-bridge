@@ -13,14 +13,16 @@ import rtmidi
 class SerialMIDIApp(QtWidgets.QWidget):
     log_signal = pyqtSignal(str)
     led_blink_signal = pyqtSignal(str)
+    midi_in_led_blink_signal = QtCore.pyqtSignal(str)
+    midi_out_led_blink_signal = QtCore.pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
         # Create LED and Refresh button before initUI
         self.led_label = QtWidgets.QLabel()
-        self.set_led_color("gray")
-        self.led_label.setFixedSize(14, 14)
-        self.led_label.setStyleSheet("background: transparent; margin: 0px; padding: 0px;")
+        #self.set_led_color("gray")
+        self.led_label.setFixedSize(16, 16)
+        self.led_label.setStyleSheet("background: #444; border-radius: 7px;")
 
         self.refresh_button = QtWidgets.QPushButton("Refresh Ports")
         self.refresh_button.setObjectName("refreshButton")
@@ -30,6 +32,8 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.serial_midi = None
         self.log_signal.connect(self.log_message)
         self.led_blink_signal.connect(self.blink_led)
+        self.midi_in_led_blink_signal.connect(self.blink_midi_in_led)
+        self.midi_out_led_blink_signal.connect(self.blink_midi_out_led)
 
         # Set up logging handler ONCE here
         logging.getLogger().handlers.clear()
@@ -56,8 +60,10 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.port_label = QtWidgets.QLabel("Serial Port")
 
         port_layout = QtWidgets.QHBoxLayout()
+        port_layout.setSpacing(0) 
+        port_layout.addWidget(self.led_label)       # 0. LED (leftmost)
         port_layout.addWidget(self.port_label)      # 1. Serial Port label
-        port_layout.addWidget(self.led_label)       # 2. LED (immediately right of label)
+        #port_layout.addWidget(self.led_label)       # 2. LED (immediately right of label)
         port_layout.addSpacing(160) 
         port_layout.addWidget(self.refresh_button)  # 3. Refresh button (rightmost)
 
@@ -67,6 +73,39 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.refresh_serial_ports()
         layout.addWidget(self.port_dropdown)
 
+        # MIDI Out Port Selection
+        self.midi_out_label = QtWidgets.QLabel("MIDI Out")
+        self.midi_out_led = QtWidgets.QLabel()
+        self.midi_out_led.setFixedSize(16, 16)
+        self.midi_out_led.setStyleSheet("background: #444; border-radius: 7px;")
+        out_layout = QtWidgets.QHBoxLayout()
+        out_layout.setSpacing(0) 
+        out_layout.addWidget(self.midi_out_led)
+        out_layout.addWidget(self.midi_out_label)
+        out_layout.addStretch()
+        layout.addLayout(out_layout)
+
+        self.midi_out_dropdown = QtWidgets.QComboBox()
+        layout.addWidget(self.midi_out_dropdown)
+
+        # MIDI In Port Selection
+        self.midi_in_label = QtWidgets.QLabel("MIDI In")
+        self.midi_in_led = QtWidgets.QLabel()
+        self.midi_in_led.setFixedSize(16, 16)
+        self.midi_in_led.setStyleSheet("background: #444; border-radius: 7px;")
+        in_layout = QtWidgets.QHBoxLayout()
+        in_layout.setSpacing(0) 
+        in_layout.addWidget(self.midi_in_led)
+        in_layout.addWidget(self.midi_in_label)
+        in_layout.addStretch()
+        layout.addLayout(in_layout)
+
+        self.midi_in_dropdown = QtWidgets.QComboBox()
+        layout.addWidget(self.midi_in_dropdown)
+
+        # Refresh MIDI Ports after defining the dropdowns
+        self.refresh_midi_ports()
+
         # Baud Rate Input
         self.baud_label = QtWidgets.QLabel("Baud Rate")
         layout.addWidget(self.baud_label)
@@ -75,23 +114,6 @@ class SerialMIDIApp(QtWidgets.QWidget):
         self.baud_dropdown.addItems(["9600", "19200", "38400", "57600", "115200"])
         self.baud_dropdown.setCurrentText("115200")  # Set default value
         layout.addWidget(self.baud_dropdown)
-
-        # MIDI Out Port Selection
-        self.midi_out_label = QtWidgets.QLabel("MIDI Out Port:")
-        layout.addWidget(self.midi_out_label)
-
-        self.midi_out_dropdown = QtWidgets.QComboBox()
-        layout.addWidget(self.midi_out_dropdown)
-
-        # MIDI In Port Selection
-        self.midi_in_label = QtWidgets.QLabel("MIDI In Port:")
-        layout.addWidget(self.midi_in_label)
-
-        self.midi_in_dropdown = QtWidgets.QComboBox()
-        layout.addWidget(self.midi_in_dropdown)
-
-        # Refresh MIDI Ports after defining the dropdowns
-        self.refresh_midi_ports()
 
         # Debug Checkbox
         layout.addSpacing(12)  
@@ -127,6 +149,14 @@ class SerialMIDIApp(QtWidgets.QWidget):
     def blink_led(self, color):
         self.set_led_color(color)
         QtCore.QTimer.singleShot(100, lambda: self.set_led_color("gray"))
+
+    def blink_midi_in_led(self, color):
+        self.midi_in_led.setStyleSheet(f"background: {color}; border-radius: 8px;")
+        QtCore.QTimer.singleShot(100, lambda: self.midi_in_led.setStyleSheet("background: #444; border-radius: 8px;"))
+
+    def blink_midi_out_led(self, color):
+        self.midi_out_led.setStyleSheet(f"background: {color}; border-radius: 8px;")
+        QtCore.QTimer.singleShot(100, lambda: self.midi_out_led.setStyleSheet("background: #444; border-radius: 8px;"))
 
     def refresh_serial_ports(self):
         """Refresh the list of available serial ports."""

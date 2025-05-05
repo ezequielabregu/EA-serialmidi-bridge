@@ -58,8 +58,7 @@ class SerialMIDI:
             #logging.debug(message)
             #logging.debug(describe_midi_message(message))
             self.ser.write(bytearray(message))
-            # After sending data (outgoing)
-            #self.gui.led_blink_signal.emit("yellow")
+            self.gui.led_blink_signal.emit("#f1c40f")  # Serial Port LED (yellow for incoming)
 
     def serial_watcher(self):
         receiving_message = []
@@ -92,7 +91,7 @@ class SerialMIDI:
                     self.midiout_message_queue.put(receiving_message)
                     receiving_message = []
                     # After receiving data (incoming)
-                    self.gui.led_blink_signal.emit("#2ecc71") # Green color
+                    self.gui.led_blink_signal.emit("#2ecc71")  # Or your serial port LED color
 
     def reset_activity_flags(self):
         """Reset the activity flags for MIDI In and Out."""
@@ -109,7 +108,7 @@ class SerialMIDI:
             self._wallclock += deltatime
             self.parent.midiin_message_queue.put(message)
             # Optionally, blink LED and log
-            self.parent.gui.led_blink_signal.emit("#f1c40f")  # Yellow for MIDI IN
+            self.parent.gui.midi_in_led_blink_signal.emit("#f1c40f")  # Yellow
             logging.debug(f"MIDI IN: {describe_midi_message(message)}")
 
     def midi_watcher(self):
@@ -155,6 +154,7 @@ class SerialMIDI:
                 # Send the MIDI message to the output port
                 try:
                     midiout.send_message(message)
+                    self.gui.midi_out_led_blink_signal.emit("#2ecc71")  # Green for MIDI OUT
                 except Exception as e:
                     logging.error(f"Failed to send MIDI message: {message}. Error: {e}")
         finally:
