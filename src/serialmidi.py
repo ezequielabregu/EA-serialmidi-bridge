@@ -227,14 +227,33 @@ class SerialMIDI:
 def describe_midi_message(message):
     if not message or not isinstance(message, (list, tuple)):
         return str(message)
+    if len(message) == 0:
+        return "Empty MIDI message"
     status = message[0]
     channel = (status & 0x0F) + 1  # Channel for musicians (1-16)
-    if status & 0xF0 == 176 and len(message) > 2:
-        return f"Control Change: CC# {message[1]:<3} VALUE {message[2]:<3} CH {channel:<2}"
-    elif status & 0xF0 == 144 and len(message) > 2:
-        return f"Note On:   NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
-    elif status & 0xF0 == 128 and len(message) > 2:
+    msg_type = status & 0xF0
+
+    if msg_type == 0x80 and len(message) > 2:
         return f"Note Off:  NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
+    elif msg_type == 0x90 and len(message) > 2:
+        return f"Note On:   NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
+    elif msg_type == 0xA0 and len(message) > 2:
+        return f"Polyphonic Aftertouch: NOTE {message[1]:<3} VAL {message[2]:<3} CH {channel:<2}"
+    elif msg_type == 0xB0 and len(message) > 2:
+        return f"Control Change: CC# {message[1]:<3} VALUE {message[2]:<3} CH {channel:<2}"
+    elif msg_type == 0xC0 and len(message) > 1:
+        return f"Program Change: PRG {message[1]:<3} CH {channel:<2}"
+    elif msg_type == 0xD0 and len(message) > 1:
+        return f"Channel Aftertouch: VAL {message[1]:<3} CH {channel:<2}"
+    elif msg_type == 0xE0 and len(message) > 2:
+        value = (message[2] << 7) | message[1]
+        return f"Pitchbend: VAL {value-8192:<5} CH {channel:<2}"
+    elif status == 0xF0:
+        # SysEx message
+        if message[-1] == 0xF7:
+            return f"SysEx: {len(message)} bytes"
+        else:
+            return f"SysEx (incomplete): {message}"
     else:
         return f"Unknown MIDI: {message}"
 
