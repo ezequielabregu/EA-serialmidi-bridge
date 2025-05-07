@@ -5,3 +5,5 @@ src/build
 src/dist
 *.spec
 *.egg-info
+dist
+build
