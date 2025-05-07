@@ -1,10 +1,22 @@
 # EA Serial MIDI Bridge
 
-This app allows users to connect serial devices to MIDI applications, enabling seamless communication between hardware and software. It provides a graphical user interface (GUI) for easy configuration and monitoring of MIDI connections.
+EA Serial MIDI Bridge allows users to connect serial devices to MIDI applications, enabling seamless communication between hardware and software. It provides a graphical user interface (GUI) for easy configuration and monitoring of MIDI connections. You can use it to send and receive MIDI messages over a serial connection, making it ideal for musicians, developers, and hobbyists working with MIDI devices.
+
+It works with any serial device that can send and receive MIDI messages, such as Arduino boards, ESP32, Raspberry Pi Pico, and other microcontrollers.
+
+## Features
+
+- **Serial to MIDI Bridge**: Convert serial data to MIDI messages and vice versa.
+- **User-Friendly GUI**: Intuitive interface for configuring and monitoring connections.
+- **Real-Time Monitoring**: View incoming and outgoing MIDI messages in real-time.
+- **Customizable Settings**: Adjust serial port settings, MIDI channels, and message formats.
+- **Cross-Platform**: Compatible with Windows, macOS, and Linux.
+
+<div align="center">
+  <img src="src/assets/EA-Bridge.gif" alt="Project Demo" width="400"/>
+</div>
 
 This app is based on the [serialmidi](https://github.com/raspy135/serialmidi) repository, which provides a user-friendly way convert serial data to MIDI messages and vice versa.
-
-The GUI enhances the usability of the original project by providing a visual representation of the MIDI connections and settings.
 
 ## Project Structure
 
