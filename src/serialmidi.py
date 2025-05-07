@@ -5,7 +5,8 @@ import serial
 import threading
 import logging
 import sys
-from PyQt6 import QtCore
+from PyQt6 import QtCore, QtWidgets
+import serialmidi
 
 class SerialMIDI:
     def __init__(self, gui, serial_port_name, serial_baud, midi_in_name, midi_out_name):
@@ -125,24 +126,31 @@ class SerialMIDI:
 
         port_index_in = -1
         port_index_out = -1
-        for i, s in enumerate(available_ports_in):
-            if self.given_port_name_in in s:
-                port_index_in = i
-        for i, s in enumerate(available_ports_out):
-            if self.given_port_name_out in s:
-                port_index_out = i
 
-        if port_index_in == -1 or port_index_out == -1:
+        if self.given_port_name_in is not None:
+            # search and open MIDI IN port
+            for i, s in enumerate(available_ports_in):
+                if self.given_port_name_in in s:
+                    port_index_in = i
+
+        if self.given_port_name_out is not None:
+            # search and open MIDI OUT port
+            for i, s in enumerate(available_ports_out):
+                if self.given_port_name_out in s:
+                    port_index_out = i
+
+        if port_index_in == -1 and port_index_out == -1:
             self.thread_running = False
             self.midi_ready = True
             sys.exit()
 
-        midiout.open_port(port_index_out)
-        midiin.open_port(port_index_in)
-
-        self.midi_ready = True
-        midiin.ignore_types(sysex=False, timing=False, active_sense=False)
-        midiin.set_callback(self.midi_input_handler(self))
+        if port_index_out != -1:
+            midiout.open_port(port_index_out)
+        if port_index_in != -1:
+            midiin.open_port(port_index_in)
+            self.midi_ready = True
+            midiin.ignore_types(sysex=False, timing=False, active_sense=False)
+            midiin.set_callback(self.midi_input_handler(self))
 
         try:
             while self.thread_running:
@@ -172,13 +180,11 @@ class SerialMIDI:
             self.ser = serial.Serial(self.serial_port_name, self.serial_baud)
         except serial.serialutil.SerialException:
             print("Serial port opening error.")
-            # Removed sys.exit() to allow GUI to handle the error
             logging.error("Serial port opening error.")
-            return # Prevent starting threads if serial fails
+            return
 
         self.ser.timeout = 0.4
 
-        # Store threads as instance variables
         self.s_watcher = threading.Thread(target=self.serial_watcher)
         self.s_writer = threading.Thread(target=self.serial_writer)
         self.m_watcher = threading.Thread(target=self.midi_watcher)
@@ -187,8 +193,7 @@ class SerialMIDI:
         self.s_writer.start()
         self.m_watcher.start()
 
-        # Removed the infinite loop and KeyboardInterrupt handling here
-        # The main loop is handled by the PyQt application
+        self.midi_ready = True
 
     def stop(self):
         """Stop the Serial MIDI bridge and clean up resources."""
@@ -232,3 +237,33 @@ def describe_midi_message(message):
         return f"Note Off:  NOTE {message[1]:<3} VEL {message[2]:<3} CH {channel:<2}"
     else:
         return f"Unknown MIDI: {message}"
+
+class SerialMIDIApp(QtWidgets.QWidget):
+    def toggle_serial_midi(self):
+        if self.serial_midi is None:
+            # Start the Serial MIDI bridge
+            serial_port_name = self.port_dropdown.currentText()
+            baud_rate = int(self.baud_dropdown.currentText())
+            midi_in_name = self.midi_in_dropdown.currentText()
+            midi_out_name = self.midi_out_dropdown.currentText()
+
+            if midi_in_name == "Not Connected":
+                midi_in_name = None
+            if midi_out_name == "Not Connected":
+                midi_out_name = None
+
+            self.serial_midi = serialmidi.SerialMIDI(
+                gui=self,
+                serial_port_name=serial_port_name,
+                serial_baud=baud_rate,
+                midi_in_name=midi_in_name,
+                midi_out_name=midi_out_name,
+            )
+
+            threading.Thread(target=self.serial_midi.start).start()
+            self.toggle_button.setText("STOP")
+        else:
+            # Stop the Serial MIDI bridge
+            self.serial_midi.stop()
+            self.serial_midi = None
+            self.toggle_button.setText("START")

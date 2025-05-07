@@ -86,6 +86,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
         layout.addLayout(out_layout)
 
         self.midi_out_dropdown = QtWidgets.QComboBox()
+        self.midi_out_dropdown.addItem("Not Connected")
         layout.addWidget(self.midi_out_dropdown)
 
         # MIDI In Port Selection
@@ -101,6 +102,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
         layout.addLayout(in_layout)
 
         self.midi_in_dropdown = QtWidgets.QComboBox()
+        self.midi_in_dropdown.addItem("Not Connected")
         layout.addWidget(self.midi_in_dropdown)
 
         # Refresh MIDI Ports after defining the dropdowns
@@ -166,19 +168,26 @@ class SerialMIDIApp(QtWidgets.QWidget):
             self.port_dropdown.addItem(port.device)
 
     def refresh_midi_ports(self):
-        """Refresh the list of available MIDI ports."""
         midi_out = rtmidi.MidiOut()
         midi_in = rtmidi.MidiIn()
 
         # Populate MIDI Out dropdown
+        current_out = self.midi_out_dropdown.currentText()
         self.midi_out_dropdown.clear()
+        self.midi_out_dropdown.addItem("Not Connected")
         for port in midi_out.get_ports():
             self.midi_out_dropdown.addItem(port)
+        if current_out in [self.midi_out_dropdown.itemText(i) for i in range(self.midi_out_dropdown.count())]:
+            self.midi_out_dropdown.setCurrentText(current_out)
 
         # Populate MIDI In dropdown
+        current_in = self.midi_in_dropdown.currentText()
         self.midi_in_dropdown.clear()
+        self.midi_in_dropdown.addItem("Not Connected")
         for port in midi_in.get_ports():
             self.midi_in_dropdown.addItem(port)
+        if current_in in [self.midi_in_dropdown.itemText(i) for i in range(self.midi_in_dropdown.count())]:
+            self.midi_in_dropdown.setCurrentText(current_in)
 
     def toggle_serial_midi(self):
         """Toggle the Serial MIDI bridge between Start and Stop."""
