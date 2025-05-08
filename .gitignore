@@ -7,3 +7,4 @@ src/dist
 *.egg-info
 dist
 build
+code-notes.md
