@@ -6,9 +6,15 @@ It works with any serial device that can send and receive MIDI messages, such as
 
 ---
 
+<div align="center">
+  <img src="src/assets/EA-Bridge.gif" alt="Project Demo" width="400"/>
+</div>
+
+---
+
 ## Download
 
-You can download the latest pre-built versions (`MacOS & Windows`) of EA Serial MIDI Bridge from the [`Releases page`](https://github.com/ezequielabregu/EA-serialmidi-bridge/releases).
+You can download the latest pre-built versions (`MacOS & Windows`) from the [`Releases page`](https://github.com/ezequielabregu/EA-serialmidi-bridge/releases).
 
 ---
 
@@ -20,11 +26,7 @@ You can download the latest pre-built versions (`MacOS & Windows`) of EA Serial 
 - **Customizable Settings**: Adjust serial port settings, MIDI channels, and message formats.
 - **Cross-Platform**: Compatible with Windows, macOS, and Linux.
 
-<div align="center">
-  <img src="src/assets/EA-Bridge.gif" alt="Project Demo" width="400"/>
-</div>
-
-This app is based on the [serialmidi](https://github.com/raspy135/serialmidi) repository, which provides a user-friendly way convert serial data to MIDI messages and vice versa.
+---
 
 ## Project Structure
 
