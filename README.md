@@ -28,15 +28,11 @@ You can download the latest pre-built versions (`MacOS & Windows`) from the [`Re
 
 ---
 
-## Arduino Compatibility
+## Compatibility
 
-`EA Serial MIDI Bridge` is fully compatible and tested with the official [Arduino MIDI Library](https://docs.arduino.cc/libraries/midi-library/).  
-You can use any Arduino board that supports serial communication and the MIDI library to send and receive MIDI messages through this app.
+`EA Serial MIDI Bridge` is fully compatible and tested with the official [Arduino MIDI Library](https://docs.arduino.cc/libraries/midi-library/). You can use any board that supports serial communication and the MIDI library to send and receive MIDI messages through this app.
 
-For ready-to-use examples, see the [`src/examples`](src/examples) folder in this repository.  
-There you will find sample sketches for various Arduino boards (UNO, Leonardo, Due, ESP32) demonstrating how to send MIDI messages over serial to the bridge.
-
-This ensures a seamless connection between your Arduino projects and your favorite DAW or MIDI software.
+For ready-to-use examples, see the [`src/examples`](src/examples) folder in this repository. There you will find sample sketches for various boards (*Arduino UNO, Leonardo, Pri Micro, ESP32*) that demonstrate how to send and receive MIDI messages over serial.
 
 ---
 
