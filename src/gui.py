@@ -113,7 +113,7 @@ class SerialMIDIApp(QtWidgets.QWidget):
         layout.addWidget(self.baud_label)
 
         self.baud_dropdown = QtWidgets.QComboBox()
-        self.baud_dropdown.addItems(["9600", "19200", "38400", "57600", "115200"])
+        self.baud_dropdown.addItems(["9600", "19200","31250", "38400", "57600", "115200"])
         self.baud_dropdown.setCurrentText("115200")  # Set default value
         layout.addWidget(self.baud_dropdown)
 
