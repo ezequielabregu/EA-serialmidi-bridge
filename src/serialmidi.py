@@ -77,22 +77,43 @@ class SerialMIDI:
                 break  # Exit gracefully if the serial port is closed
             if data:
                 for elem in data:
-                    receiving_message.append(elem)
-                if len(receiving_message) == 1:
-                    if (receiving_message[0] & 0xf0) != 0:
-                        running_status = receiving_message[0]
-                    else:
-                        receiving_message = [running_status, receiving_message[0]]
+                    # Real-time messages are single-byte and may sit between
+                    # the bytes of another message. They do not change running status.
+                    if elem >= 0xf8:
+                        logging.debug(describe_midi_message([elem]))
+                        self.midiout_message_queue.put([elem])
+                        self.gui.led_blink_signal.emit("#2ecc71")
+                        continue
 
-                message_length = self.get_midi_length(receiving_message)
-                if message_length <= len(receiving_message):
-                    #uncomment the next line to see the raw data
-                    #logging.debug(receiving_message)
-                    logging.debug(describe_midi_message(receiving_message))
-                    self.midiout_message_queue.put(receiving_message)
-                    receiving_message = []
-                    # After receiving data (incoming)
-                    self.gui.led_blink_signal.emit("#2ecc71")  # Or your serial port LED color
+                    if elem & 0x80:
+                        # 0xF7 ends a SysEx. Any other status byte starts a new message.
+                        if receiving_message and receiving_message[0] == 0xf0 and elem == 0xf7:
+                            receiving_message.append(elem)
+                        else:
+                            receiving_message = [elem]
+                            # Channel messages (0x80-0xEF) update running status.
+                            # System common messages (0xF0-0xF7) cancel it.
+                            if elem < 0xf0:
+                                running_status = elem
+                            else:
+                                running_status = 0
+                    elif not receiving_message:
+                        # Data byte with no status: reuse the previous channel status.
+                        if not running_status:
+                            continue
+                        receiving_message = [running_status, elem]
+                    else:
+                        receiving_message.append(elem)
+
+                    message_length = self.get_midi_length(receiving_message)
+                    if message_length <= len(receiving_message):
+                        #uncomment the next line to see the raw data
+                        #logging.debug(receiving_message)
+                        logging.debug(describe_midi_message(receiving_message))
+                        self.midiout_message_queue.put(receiving_message)
+                        receiving_message = []
+                        # After receiving data (incoming)
+                        self.gui.led_blink_signal.emit("#2ecc71")  # Or your serial port LED color
 
     def reset_activity_flags(self):
         """Reset the activity flags for MIDI In and Out."""
@@ -254,6 +275,37 @@ def describe_midi_message(message):
             return f"SysEx: {len(message)} bytes"
         else:
             return f"SysEx (incomplete): {message}"
+    elif status == 0xF1 and len(message) > 1:
+        return f"MTC Quarter Frame: DATA {message[1]:<3}"
+    elif status == 0xF2 and len(message) > 2:
+        position = (message[2] << 7) | message[1]
+        return f"Song Position: POS {position:<5}"
+    elif status == 0xF3 and len(message) > 1:
+        return f"Song Select: SONG {message[1]:<3}"
+    elif status == 0xF4:
+        return "Undefined: 0xF4"
+    elif status == 0xF5:
+        return "Undefined: 0xF5"
+    elif status == 0xF6:
+        return "Tune Request"
+    elif status == 0xF7:
+        return "End of Exclusive"
+    elif status == 0xF8:
+        return "Timing Clock"
+    elif status == 0xF9:
+        return "Undefined: 0xF9"
+    elif status == 0xFA:
+        return "Start"
+    elif status == 0xFB:
+        return "Continue"
+    elif status == 0xFC:
+        return "Stop"
+    elif status == 0xFD:
+        return "Undefined: 0xFD"
+    elif status == 0xFE:
+        return "Active Sensing"
+    elif status == 0xFF:
+        return "System Reset"
     else:
         return f"Unknown MIDI: {message}"
 
